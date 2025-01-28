@@ -1,7 +1,18 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Button, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    Button,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    useColorScheme,
+} from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useAuthContext } from '../../providers/AuthProvider';
 import { RootStackParamList } from '../../types/RootType';
 
@@ -9,6 +20,8 @@ type ScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginScreen = ({ navigation }: { navigation: ScreenNavigationProp }) => {
     const { login, errorMessage } = useAuthContext();
+    const isDarkMode = useColorScheme() === 'dark';
+    const styles: any = myStyles(isDarkMode);
 
     const onSubmit = async (data: { email: string; password: string }) => {
         login(data, navigation);
@@ -83,6 +96,7 @@ const LoginScreen = ({ navigation }: { navigation: ScreenNavigationProp }) => {
                             onBlur={onBlur}
                             onChangeText={onChange}
                             value={value}
+                            autoCapitalize="none"
                         />
                     )}
                 />
@@ -99,7 +113,7 @@ const LoginScreen = ({ navigation }: { navigation: ScreenNavigationProp }) => {
 
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                    Don't have an account?{' '}
+                    Don't have an account?
                     <Text style={styles.signup} onPress={() => navigation.navigate('Signup')}>
                         Sign Up
                     </Text>
@@ -109,63 +123,65 @@ const LoginScreen = ({ navigation }: { navigation: ScreenNavigationProp }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 16,
-        backgroundColor: '#ffffff',
-        justifyContent: 'center',
-    },
-    header: {
-        marginBottom: 32,
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#666',
-        marginTop: 8,
-    },
-    form: {
-        marginBottom: 16,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 8,
-        fontSize: 16,
-    },
-    error: {
-        borderColor: 'red',
-    },
-    errorText: {
-        color: 'red',
-        fontSize: 14,
-        marginBottom: 8,
-    },
-    forgotPassword: {
-        color: '#007BFF',
-        textAlign: 'center',
-        marginTop: 12,
-    },
-    footer: {
-        marginTop: 16,
-        alignItems: 'center',
-    },
-    footerText: {
-        fontSize: 14,
-        color: '#666',
-    },
-    signup: {
-        color: '#007BFF',
-        fontWeight: 'bold',
-    },
-});
+const myStyles = (isDarkMode: boolean) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            padding: 16,
+            backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+            justifyContent: 'center',
+        },
+        header: {
+            marginBottom: 32,
+            alignItems: 'center',
+        },
+        title: {
+            fontSize: 32,
+            fontWeight: 'bold',
+            color: isDarkMode ? Colors.lighter : '#333',
+        },
+        subtitle: {
+            fontSize: 16,
+            color: '#666',
+            marginTop: 8,
+        },
+        form: {
+            marginBottom: 16,
+        },
+        input: {
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            padding: 12,
+            marginBottom: 8,
+            fontSize: 16,
+            color: isDarkMode ? Colors.white : Colors.black,
+        },
+        error: {
+            borderColor: 'red',
+        },
+        errorText: {
+            color: 'red',
+            fontSize: 14,
+            marginBottom: 8,
+        },
+        forgotPassword: {
+            color: '#007BFF',
+            textAlign: 'center',
+            marginTop: 12,
+        },
+        footer: {
+            marginTop: 16,
+            alignItems: 'center',
+        },
+        footerText: {
+            fontSize: 14,
+            color: '#666',
+        },
+        signup: {
+            color: '#007BFF',
+            fontWeight: 'bold',
+        },
+    });
 
 export default LoginScreen;

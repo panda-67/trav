@@ -7,13 +7,16 @@ import { useAuthContext } from './AuthProvider';
 type ScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AuthGuard = ({ children, navigation }: { children: React.ReactNode; navigation: ScreenNavigationProp }) => {
-    const { isAuthenticated, loading } = useAuthContext(); // Auth context state
+    const { isAuthenticated, loading, setIntendedRoute } = useAuthContext(); // Auth context state
 
     useEffect(() => {
         if (!loading && !isAuthenticated) {
-            navigation.navigate('Login');
+            const route = navigation.getState().routes[navigation.getState().index];
+
+            setIntendedRoute({ name: route.name, params: route.params });
+            navigation.reset({ index: 0, routes: [{ name: 'Home' }, { name: 'Login' }] });
         }
-    }, [loading, isAuthenticated, navigation]);
+    }, [loading, isAuthenticated, navigation, setIntendedRoute]);
 
     if (loading) {
         return (

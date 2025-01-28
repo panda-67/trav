@@ -2,16 +2,18 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Button, Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CardProps } from '../components/Card';
+import { useAuthContext } from '../providers/AuthProvider';
 import { fetchDetail } from '../services/api';
 import { RootStackParamList } from '../types/RootType';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 function DetailsScreen({ navigation, route }: { navigation: HomeScreenNavigationProp; route: any }) {
-    const { itemId } = route.params;
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [itemDetails, setItemDetails] = useState<CardProps | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const { authToken } = useAuthContext();
+    const { itemId } = route.params;
 
     let imageUrls: string[] = [];
 
@@ -19,20 +21,20 @@ function DetailsScreen({ navigation, route }: { navigation: HomeScreenNavigation
         imageUrls = JSON.parse(itemDetails.images);
     }
 
-    const getData = async (uuid: string) => {
-        try {
-            const result = await fetchDetail(uuid);
-            setItemDetails(result.destination);
-        } catch (err: any) {
-            setError(err.message || 'An error occurred while fetching data.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        getData(itemId);
-    }, [itemId]);
+        const getData = async () => {
+            try {
+                const result = await fetchDetail(itemId, authToken);
+                setItemDetails(result.destination);
+            } catch (err: any) {
+                setError(err.message || 'An error occurred while fetching data.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getData();
+    }, [itemId, authToken]);
 
     if (loading) {
         return (

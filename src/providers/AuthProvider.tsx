@@ -6,33 +6,41 @@ import { API_BASE_URL } from '../services/api';
 import { RootStackParamList } from '../types/RootType';
 
 type ScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type IntendedRoute = { name: keyof RootStackParamList; params?: any };
 
 type AuthContextType = {
     isAuthenticated: boolean;
     login: (data: { email: string; password: string }, navigation: ScreenNavigationProp) => void;
     errorMessage: string | null;
+    authToken: string | null;
     loading: boolean;
     user: any | null;
     logout: () => void;
+    intendedRoute: IntendedRoute | null;
+    setIntendedRoute: (route: IntendedRoute | null) => void; // Fix here
 };
 
 const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     login: () => {},
     errorMessage: null,
+    authToken: '',
     loading: true,
     user: null,
     logout: () => {},
+    intendedRoute: null,
+    setIntendedRoute: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [authToken, setAuthToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null); // Store user info
+    const [intendedRoute, setIntendedRoute] = useState<IntendedRoute | null>(null);
 
     useEffect(() => {
-        // Simulate checking auth state (e.g., token validation)
         const checkAuth = async () => {
             const token = await AsyncStorage.getItem('authToken');
             setIsAuthenticated(!!token);
@@ -42,23 +50,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         checkAuth();
     }, []);
 
+    const authenticateUser = async (data: { email: string; password: string }) => {
+        const response = await fetch(`${API_BASE_URL}login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        const res = await response.json();
+        return { success: response.ok, ...res }; // Include both success status and response data
+    };
+
+    const handleSuccessfulLogin = async (res: any, navigation: ScreenNavigationProp) => {
+        Alert.alert('Login Successful', `Welcome back, ${res.user.email}!`);
+        await AsyncStorage.setItem('authToken', res.token);
+        setAuthToken(`Bearer ${res.token}`);
+        setIsAuthenticated(true);
+        setUser(res.user);
+
+        if (intendedRoute) {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }, { name: intendedRoute.name, params: intendedRoute.params }],
+            });
+            setIntendedRoute(null);
+        } else {
+            navigation.navigate('Home');
+        }
+    };
+
     const login = async (data: { email: string; password: string }, navigation: ScreenNavigationProp) => {
         try {
-            const response = await fetch(`${API_BASE_URL}login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                body: JSON.stringify(data),
-            });
+            const res = await authenticateUser(data);
 
-            const res = await response.json();
-
-            if (response.ok) {
-                Alert.alert('Login Successful', `Welcome back, ${data.email}!`);
-                await AsyncStorage.setItem('authToken', res.token); // Save token
-                navigation.navigate('Home'); // Navigate to Home Screen
-                setIsAuthenticated(true); // Update auth state
-                setErrorMessage(null); // Clear error messages
-                setUser(res.user); // Store user data in state
+            if (res.success) {
+                handleSuccessfulLogin(res, navigation); // Handles success flow
             } else {
                 setErrorMessage(`${res.message}. Login failed, please try again.`);
             }
@@ -81,7 +107,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, errorMessage, loading, user, logout }}>
+        <AuthContext.Provider
+            value={{
+                isAuthenticated,
+                login,
+                errorMessage,
+                authToken,
+                loading,
+                user,
+                logout,
+                intendedRoute,
+                setIntendedRoute,
+            }}>
             {children}
         </AuthContext.Provider>
     );

@@ -31,14 +31,7 @@ const Navigation = () => {
                 contentStyle: {},
             }}>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{
-                    title: 'Destinations',
-                    // headerRight: () => LogoutButton(),
-                }}
-            />
+            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Destinations' }} />
             <Stack.Screen name="Details">
                 {props => (
                     <AuthGuard navigation={props.navigation}>

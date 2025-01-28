@@ -17,10 +17,10 @@ const fetchData = async (endpoint: string) => {
     }
 };
 
-const fetchDetail = async (itemId: string) => {
+const fetchDetail = async (itemId: string, token: string | null) => {
     try {
         const response = await fetch(`${API_BASE_URL}${itemId}/show`, {
-            headers: { Accept: 'application/json' },
+            headers: { Accept: 'application/json', Authorization: `${token}` },
         });
 
         if (!response.ok) {
